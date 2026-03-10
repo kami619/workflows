@@ -21,7 +21,7 @@ The agent reads the fetched data, evaluates each PR via sub-agents, and writes a
 
 ## Directory Structure
 
-```
+```text
 pr-overview/
 ├── .ambient/
 │   ├── ambient.json           # Workflow config

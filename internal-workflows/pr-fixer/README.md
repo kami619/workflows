@@ -22,7 +22,7 @@ The agent reads the fetched data, checks out the PR branch, and works through: r
 
 ## Directory Structure
 
-```
+```text
 pr-fixer/
 ├── .ambient/
 │   └── ambient.json          # Workflow config

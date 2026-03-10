@@ -193,7 +193,7 @@ def check_reviews(reviews, review_comments, pr_comments, fetch_ok=True):
     Returns (status, detail, has_comments).
     """
     if not fetch_ok:
-        return "needs_review", "PR data incomplete \u2014 fetch may have failed", True
+        return "FAIL", "PR data incomplete \u2014 fetch may have failed", True
 
     issues = []
 
@@ -675,6 +675,15 @@ def main():
         elif num in pr_file_hunks:
             r["overlap_status"] = "pass"
             r["overlap_detail"] = "\u2014"
+
+    # Recompute fail_count now that overlap_status is set
+    for r in results:
+        r["fail_count"] = sum(
+            1
+            for s in [r["ci_status"], r["conflict_status"], r["review_status"],
+                       r["stale_status"], r["overlap_status"]]
+            if s == "FAIL"
+        )
 
     # Flag PRs to recommend closing
     for r in results:

@@ -147,7 +147,8 @@ For **every** open PR, evaluate each of these categories. Each is either clear o
 
 - Check the `mergeable` field.
 - **Clear:** `MERGEABLE`.
-- **Blocker:** `CONFLICTING` or `UNKNOWN`. Note which files overlap with other open PRs if detectable.
+- **Warn:** `UNKNOWN` — GitHub hasn't computed mergeability yet. Not a blocker.
+- **Blocker:** `CONFLICTING`. Note which files overlap with other open PRs if detectable.
 
 ### 3. Review Comments
 

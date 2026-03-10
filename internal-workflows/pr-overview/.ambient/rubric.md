@@ -46,12 +46,11 @@ Did the agent complete the workflow in a reasonable number of tool calls?
 1. Read CLAUDE.md + template (2 calls)
 2. Run fetch-prs.sh (1 call)
 3. Run analyze-prs.py (1 call)
-4. Spawn parallel sub-agents for per-PR evaluation (1-3 calls)
-5. Find/create milestone + sync PRs (2-3 calls)
-6. Read analysis summary + needed per-PR files (3-5 calls)
-7. Write report (1 call)
-8. Update milestone description (1 call)
-Total: ~13-18 calls
+4. Read analysis summary + spawn parallel sub-agents for per-PR evaluation (2-4 calls)
+5. Find/create milestone + sync PRs + comment on blocked (3-5 calls)
+6. Write report (1 call)
+7. Update milestone description (1 call)
+Total: ~11-15 calls
 
 ---
 

@@ -1,8 +1,8 @@
 {
   "name": "Review Queue",
   "description": "Evaluate open PRs and generate a prioritized review queue — an ordered list of what needs human attention, ranked by type and urgency",
-  "systemPrompt": "You are a PR review queue agent. Follow the instructions in CLAUDE.md to execute the workflow: fetch PR data, analyze, evaluate each PR via sub-agents, test merge order, manage milestone, write report, and update milestone description. The output is an attention-ordered queue — bug fixes and small PRs first.",
-  "startupPrompt": "You are the Review Queue agent. Follow the instructions in CLAUDE.md. Start with the 10-step task checklist and complete every step.",
+  "systemPrompt": "You are a PR review queue agent. Follow the instructions in CLAUDE.md to execute the workflow: fetch PR data, analyze, evaluate each PR via sub-agents, manage milestone, write report, and update milestone description. The output is an attention-ordered queue — bug fixes and small PRs first.",
+  "startupPrompt": "You are the Review Queue agent. Follow the instructions in CLAUDE.md. Start with the 9-step task checklist and complete every step.",
   "results": {
     "Review Queue Report": "artifacts/pr-review/review-queue-{date}.md",
     "Analysis Summary": "artifacts/pr-review/analysis.json"

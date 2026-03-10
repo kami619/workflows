@@ -74,7 +74,7 @@ trap 'rm -rf "$TMPDIR"' EXIT
 echo "Fetching PR #${PR_NUM} from ${REPO}..." >&2
 
 # -- Fetch PR metadata, reviews, review comments, and diff in parallel --
-DETAIL_FIELDS="number,title,author,createdAt,updatedAt,labels,isDraft,baseRefName,headRefName,url,state,additions,deletions,changedFiles,mergeable,body,reviewDecision,statusCheckRollup,comments,assignees,milestone,files,isCrossRepository,headRepositoryOwner"
+DETAIL_FIELDS="number,title,author,createdAt,updatedAt,labels,isDraft,baseRefName,headRefName,headRefOid,url,state,additions,deletions,changedFiles,mergeable,body,reviewDecision,statusCheckRollup,comments,assignees,milestone,files,isCrossRepository,headRepositoryOwner"
 
 echo "  Fetching PR data (parallel)..." >&2
 
@@ -104,7 +104,7 @@ wait "$PID_DIFF" 2>/dev/null || echo '[]' > "${OUTPUT_DIR}/diff.json"
 
 # -- Fetch check runs (depends on PR metadata for HEAD_SHA) --
 echo "  Fetching CI status..." >&2
-HEAD_SHA=$(jq -r '.statusCheckRollup // [] | if length > 0 then .[0].commit.oid // empty else empty end' "${OUTPUT_DIR}/pr.json" 2>/dev/null || true)
+HEAD_SHA=$(jq -r '.headRefOid // empty' "${OUTPUT_DIR}/pr.json" 2>/dev/null || true)
 
 echo '[]' > "${OUTPUT_DIR}/ci.json"
 if [[ -n "$HEAD_SHA" ]]; then
