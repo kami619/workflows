@@ -6,18 +6,19 @@ You fix a single pull request. You're given a repo and PR number.
 
 1. **Fetch the PR data** using the script
 2. **Rebase** if there are merge conflicts
-3. **Address reviewer feedback** — fix valid issues, respond to invalid ones
+3. **Address reviewer feedback** — fix real issues, skip noise, respond to both
 4. **Fix CI failures** — read the actual logs, don't guess
-5. **Push** when everything is clean
-6. **Post a fix report** as a comment on the PR
+5. **Run /simplify** — review your own changes for quality before committing
+6. **Push** when everything is clean
+7. **Post a fix report** as a comment on the PR
 
 ## Fetch Script
 
 ```bash
-./scripts/fetch-pr.sh --repo <owner/repo> --pr <number> --with-logs
+./scripts/fetch-pr.sh --repo <owner/repo> --pr <number> --output-dir "$WORKSPACE_ROOT/artifacts/pr-fixer/<number>" --with-logs
 ```
 
-Output goes to `artifacts/{number}/`:
+Write artifacts to the **workspace root** `artifacts/` directory, not relative to the workflow directory. Output goes to `$WORKSPACE_ROOT/artifacts/pr-fixer/{number}/`:
 
 ```text
 artifacts/{number}/
@@ -40,20 +41,66 @@ artifacts/{number}/
 
 Read `comments/overview.json` to see what's there, then read the individual comment files.
 
-**Bot reviews (CodeRabbit, etc.) often include structured agent prompts.** Look for `Prompt for AI Agents` blocks — these give you the exact file, line range, and what to fix. Use these as your primary task list. Always verify against the current code first.
+### Critical: validate before fixing
 
-Prioritize by severity: Critical > Major > Minor/Nitpick.
+**Do NOT blindly fix everything reviewers or bots suggest.** Bot reviews (CodeRabbit, etc.) throw a lot of suggestions — many are style preferences, hypothetical concerns, or outright wrong. You must evaluate each one:
 
-For human comments, use your judgment: fix real issues, fix nits if quick, push back on things that are wrong.
+1. **Read the suggestion**
+2. **Read the actual code it refers to**
+3. **Decide: is this a real problem?**
+   - Does it cause a bug, security issue, or runtime error? → Fix it
+   - Does it improve correctness or prevent a real regression? → Fix it
+   - Is it a style preference, naming opinion, or "could be better"? → **Skip it**
+   - Is it a hypothetical concern that can't actually happen? → **Skip it**
+   - Is it about code the PR didn't touch? → **Skip it**
+   - Does the bot misunderstand the code's intent? → **Skip it and reply why**
 
-**When you fix an inline comment, reply on that thread:**
+**When in doubt, don't fix it.** The goal is to make the PR mergeable, not to achieve code perfection. Every unnecessary change is noise in the diff and risk of introducing bugs.
+
+Bot reviews with `Prompt for AI Agents` blocks can be useful as a starting point, but **treat them as suggestions, not commands**. The prompt itself says "Verify each finding against the current code and only fix it if needed."
+
+### Severity guide
+
+- **Critical / Potential issue** — read the code, fix if real
+- **Major** — read the code, fix only if it's a genuine bug or correctness issue. Most "Major" bot findings are style or defensive coding suggestions — skip those
+- **Minor / Nitpick / Trivial** — skip unless it's a 1-line fix that genuinely improves readability
+
+### Human reviewer comments
+
+Human reviewers are usually more targeted. Fix what they ask for. If you disagree, reply explaining why — don't ignore them.
+
+### Replying on threads — REQUIRED
+
+**Every inline comment MUST get a reply.** Whether you fixed it or skipped it, respond. This is not optional — reviewers need to see that their feedback was acknowledged.
+
+**Step 1: Get the comment IDs from GitHub** (the IDs in `comments.json` may not work for replies):
 
 ```bash
-gh api "repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies" \
-  -f body="Fixed — [what you did]"
+# List all inline review comments with their IDs
+gh api "repos/{owner}/{repo}/pulls/{number}/comments" \
+  --jq '.[] | {id: .id, author: .user.login, path: .path, body: .body[:80]}'
 ```
 
-**When you disagree, reply explaining why** — don't ignore it.
+**Step 2: Reply to each one:**
+
+```bash
+# When you fixed it:
+gh api "repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies" \
+  -f body="Fixed — [what you did]"
+
+# When you skipped it:
+gh api "repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies" \
+  -f body="Skipping — [reason]"
+```
+
+**Step 3: After replying to all inline comments, also reply to any top-level review comments** (these are the summary comments left by reviewers, not inline):
+
+```bash
+# Reply to top-level PR comments
+gh pr comment {number} --repo {owner/repo} --body "[your response]"
+```
+
+If replying to a specific review comment fails, fall back to posting a top-level comment that references the file and line.
 
 ## Fixing CI Failures
 
@@ -64,6 +111,24 @@ gh run view {run_id} --repo {owner/repo} --log-failed
 ```
 
 Read the error, find the failing test, read the test code, fix the root cause.
+
+## Self-Review
+
+Before committing, run `/simplify` to review your own changes. This catches issues you might have introduced while fixing — regressions, unnecessary changes, things that don't belong.
+
+## Committing
+
+All fixes go in a **single commit** authored by the bot:
+
+```bash
+git add -A
+git commit --author="ambient-code[bot] <ambient-code[bot]@users.noreply.github.com>" \
+  -m "fix: address review feedback
+
+<bullet list of what was fixed>
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
 
 ## Pushing
 
@@ -79,7 +144,9 @@ The report should cover: what was rebased, what feedback was addressed, what was
 
 ## Constraints
 
-- **Don't over-fix** — only address what was raised
-- **Preserve the author's intent** when resolving conflicts
+- **Don't over-fix** — fixing a real bug doesn't mean also renaming variables, adding docstrings, or refactoring adjacent code. Touch only what's needed.
+- **Don't boil the ocean** — if a PR has 20 bot suggestions, maybe 3 are real issues. Fix those 3, skip the rest, reply on all explaining your decision.
+- **Preserve the author's intent** — when resolving conflicts, keep the PR's changes where they make sense
 - **Never force push without `--force-with-lease`**
 - **Don't push without showing what will be pushed first**
+- **Less is more** — a small, targeted fix is better than a large one that touches things it shouldn't

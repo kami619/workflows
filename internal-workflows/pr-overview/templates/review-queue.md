@@ -1,7 +1,7 @@
 # Review Queue — {{REPO}}
 
 **Date:** {{DATE}}
-**Open PRs:** {{TOTAL_PRS}} | **Ready for Review:** {{READY_COUNT}} | **In Review Queue:** {{MILESTONE_COUNT}}
+**Open PRs:** {{TOTAL_PRS}} | **Ready for Review:** {{READY_COUNT}} | **In Queue:** {{MILESTONE_COUNT}}
 
 ### At a Glance
 
@@ -11,47 +11,60 @@
 
 ## Ready for Review ({{READY_COUNT}})
 
-> Ordered by priority: bug fixes first, then features, smallest first within each type.
+> Priority order: bug fixes > features > refactors > docs. Smallest first.
 
-| # | PR | Type | Author | Size | Updated | Action Needed | Notes |
-|---|---|---|---|---|---|---|---|
+| # | PR | Type | Author | Size | Updated | Action Needed |
+|---|---|---|---|---|---|---|
 {{#each READY_PR_ROWS}}
-| {{RANK}} | [#{{NUMBER}}]({{URL}}) — {{TITLE}} | {{TYPE}} | {{AUTHOR}} | {{SIZE}} | {{UPDATED}} | {{ACTION_NEEDED}} | {{NOTES}} |
+| {{RANK}} | [#{{NUMBER}}]({{URL}}) — {{TITLE}} | {{TYPE}} | {{AUTHOR}} | {{SIZE}} | {{UPDATED}} | {{ACTION_NEEDED}} |
 {{/each}}
 
 ---
 
-## PRs With Blockers
+## Blocked PRs ({{BLOCKED_COUNT}})
 
-{{#each BLOCKER_PR_ENTRIES}}
+> Ordered by last updated (most recent first). Showing up to 50.
 
-### {{RANK}}. [#{{NUMBER}}]({{URL}}) — {{TITLE}}
+| # | PR | Type | Author | Updated | Blockers | Issue |
+|---|---|---|---|---|---|---|
+{{#each BLOCKED_PR_ROWS}}
+| {{RANK}} | [#{{NUMBER}}]({{URL}}) — {{TITLE}} | {{TYPE}} | {{AUTHOR}} | {{UPDATED}} | {{BLOCKER_ICONS}} | {{ISSUE_SNIPPET}} |
+{{/each}}
 
-**Author:** {{AUTHOR}} | **Type:** {{TYPE}} | **Size:** {{SIZE}} | **Updated:** {{UPDATED}} | **Branch:** `{{BRANCH}}`
+<details>
+<summary>Blocker legend</summary>
 
-| Blocker | Status | Detail |
-|---------|--------|--------|
-| CI | {{CI_STATUS}} | {{CI_DETAIL}} |
-| Merge conflicts | {{CONFLICT_STATUS}} | {{CONFLICT_DETAIL}} |
-| Review comments | {{REVIEW_STATUS}} | {{REVIEW_DETAIL}} |
-| Jira hygiene | {{JIRA_STATUS}} | {{JIRA_DETAIL}} |
-| Staleness | {{STALE_STATUS}} | {{STALE_DETAIL}} |
-| Diff overlap risk | {{OVERLAP_STATUS}} | {{OVERLAP_DETAIL}} |
+| Icon | Meaning |
+|------|---------|
+| CI | CI checks failing |
+| CONFLICT | Merge conflicts |
+| REVIEW | Changes requested or unresolved review |
+| STALE | No activity in 30+ days |
+| OVERLAP | Diff overlap with another PR |
 
-**Action needed:** {{ACTION_NEEDED}}
+</details>
 
-{{#if REVIEW_SUMMARY}}
-> {{REVIEW_SUMMARY}}
+---
+
+{{#if ONE_BLOCKER_ROWS}}
+## Almost Ready ({{NEAR_COUNT}})
+
+> These PRs have exactly one blocker — easiest to unblock.
+
+| PR | Type | Author | Updated | Blocker | What's Needed |
+|---|---|---|---|---|---|
+{{#each ONE_BLOCKER_ROWS}}
+| [#{{NUMBER}}]({{URL}}) — {{TITLE}} | {{TYPE}} | {{AUTHOR}} | {{UPDATED}} | {{BLOCKER}} | {{WHAT_NEEDED}} |
+{{/each}}
+
+---
+
 {{/if}}
 
----
-
-{{/each}}
-
 {{#if RECOMMEND_CLOSE_ENTRIES}}
-## Recommend Closing
+## Recommend Closing ({{CLOSE_COUNT}})
 
-> These PRs appear abandoned, superseded, or too stale to maintain. Close or ping the author.
+> Abandoned, superseded, or too stale to maintain. Close or ping the author.
 
 | PR | Author | Reason | Last Updated |
 |---|---|---|---|
@@ -63,11 +76,36 @@
 
 {{/if}}
 
+{{#if DRAFT_ROWS}}
+## Drafts ({{DRAFT_COUNT}})
+
+| PR | Type | Author | Updated | Notes |
+|---|---|---|---|---|
+{{#each DRAFT_ROWS}}
+| [#{{NUMBER}}]({{URL}}) — {{TITLE}} | {{TYPE}} | {{AUTHOR}} | {{UPDATED}} | {{NOTES}} |
+{{/each}}
+
+---
+
+{{/if}}
+
 ## Summary
 
-- **Ready for review:** {{READY_COUNT}} PRs with zero blockers
-- **In Review Queue:** {{MILESTONE_COUNT}} PRs
-- **One blocker away:** {{NEAR_COUNT}} PRs
-- **Needs work:** {{WORK_COUNT}} PRs
-- **Recommend closing:** {{CLOSE_COUNT}} PRs
-{{#if FORK_COUNT}}- **Fork PRs:** {{FORK_COUNT}} (marked in tables — no automated agent review, require manual review){{/if}}
+| Bucket | Count |
+|--------|-------|
+| Ready for review | {{READY_COUNT}} |
+| In queue (milestone) | {{MILESTONE_COUNT}} |
+| Almost ready (1 blocker) | {{NEAR_COUNT}} |
+| Blocked (2+ blockers) | {{WORK_COUNT}} |
+| Recommend closing | {{CLOSE_COUNT}} |
+| Drafts | {{DRAFT_COUNT}} |
+{{#if FORK_COUNT}}| Fork PRs (need manual review) | {{FORK_COUNT}} |{{/if}}
+| **Total open** | **{{TOTAL_PRS}}** |
+
+### By Type
+
+| Type | Count |
+|------|-------|
+{{#each TYPE_COUNTS}}
+| {{TYPE}} | {{COUNT}} |
+{{/each}}

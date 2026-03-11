@@ -17,13 +17,13 @@ You evaluate all open PRs in a repo and produce a prioritized review queue — w
 ### Fetch
 
 ```bash
-./scripts/fetch-prs.sh --repo <owner/repo> --output-dir artifacts/pr-review
+./scripts/fetch-prs.sh --repo <owner/repo> --output-dir "$WORKSPACE_ROOT/artifacts/pr-review"
 ```
 
-Produces per-PR directories:
+Write artifacts to the **workspace root** `artifacts/` directory, not relative to the workflow directory. Produces per-PR directories:
 
 ```text
-artifacts/pr-review/
+$WORKSPACE_ROOT/artifacts/pr-review/
 ├── index.json                     # List of all open PRs
 ├── queue.json                     # Ranked queue (written by analyze step)
 └── {number}/
@@ -42,7 +42,7 @@ artifacts/pr-review/
 ### Analyze
 
 ```bash
-python3 ./scripts/analyze-prs.py --output-dir artifacts/pr-review
+python3 ./scripts/analyze-prs.py --output-dir "$WORKSPACE_ROOT/artifacts/pr-review"
 ```
 
 Reads each `summary.json`, writes `analysis.json` per PR and `queue.json` at top level.
@@ -78,7 +78,14 @@ Post on PRs with `fail_count > 0` using `<!-- review-queue-bot -->` marker. Skip
 
 ## Report
 
-Use `templates/review-queue.md`. Ready PRs in a condensed table, blocked PRs with full blocker tables, recommend-close PRs in a separate table.
+Use `templates/review-queue.md`. Sections:
+
+- **Ready for Review** — condensed table, priority ordered
+- **Blocked PRs** — table ordered by last updated (most recent first), limit 50. Each row shows blocker icons (CI, CONFLICT, REVIEW, STALE, OVERLAP) and a short issue snippet (e.g., "CI: e2e failing", "CHANGES_REQUESTED from @bob", "Merge conflicts")
+- **Almost Ready** — PRs with exactly 1 blocker, easiest to unblock
+- **Recommend Closing** — stale/abandoned PRs
+- **Drafts** — WIP PRs
+- **Summary** — counts by bucket + by type
 
 ## Blocker Checklist
 
