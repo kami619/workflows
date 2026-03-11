@@ -74,7 +74,16 @@ Find or create **"Review Queue"** milestone (also check for "Merge Queue"). Add 
 
 ## Blocker Comments
 
-Post on PRs with `fail_count > 0` using `<!-- review-queue-bot -->` marker. Skip if unchanged since last comment. Skip drafts and recommend-close PRs.
+Post **after sub-agent evaluation is complete**. For each PR:
+
+1. Start with the `analysis.json` blocker statuses (ci_status, conflict_status, etc.)
+2. Update `review_status` based on the sub-agent verdict — if the verdict is `blocked`, set review_status to FAIL
+3. Recount fail_count with the updated statuses
+4. Post on PRs with `fail_count > 0` using `<!-- review-queue-bot -->` marker
+
+Include a blocker table and an "Action needed" line from the sub-agent verdict. Skip if unchanged since last comment. Skip drafts and recommend-close PRs.
+
+Note: `review_status = "needs_review"` in `analysis.json` means the sub-agent hasn't evaluated yet — it is NOT a clean pass. Always evaluate these PRs before deciding if they're clean.
 
 ## Report
 
