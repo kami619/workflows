@@ -49,20 +49,32 @@ Reads each `summary.json`, writes `analysis.json` per PR and `queue.json` at top
 
 ## Sub-Agent Evaluation
 
-The analyze script handles mechanical checks. Sub-agents handle the nuanced part — reading comment conversations and making judgment calls.
+The analyze script handles mechanical checks. Sub-agents produce the final verdict per PR by reasoning across **all available data** — not just comments.
 
-Spawn sub-agents in parallel (batches of ~10). Each reads `summary.json` + `comments/` for its PRs and returns:
+Spawn sub-agents in parallel (batches of ~10). Each sub-agent reads **all of these** for its PRs:
+
+1. **`summary.json`** — the ground truth: current CI status, mergeable state, review decision, comment counts
+2. **`ci/overview.json`** — which checks are passing/failing right now
+3. **`reviews/overview.json`** — who approved, who requested changes, current state
+4. **`comments/`** — the conversation history (context, not truth)
+
+**Comments are context, not truth.** A comment saying "CI is failing" from 3 days ago means nothing if `ci.status` is `pass` now. A CHANGES_REQUESTED review might be stale if the author addressed the concern in a later commit. Always cross-reference comments against the current state in `summary.json`.
+
+Each sub-agent returns:
 
 - **verdict**: ready / almost / blocked / stale
-- **review_summary**: who reviewed, what was raised, was it addressed
-- **action_needed**: what a human should do next
+- **review_summary**: 2-3 bullet points — what happened, what's resolved, what's outstanding
+- **action_needed**: the one thing that needs to happen next
 - **action_owner**: who needs to act
 
 Key judgment calls:
+- Comment says CI failing but `ci.status` is `pass` → CI is fine, ignore the comment
+- CHANGES_REQUESTED is active but the concern was addressed in a later commit → needs re-approval from reviewer, not a code blocker
+- Bot review flagged issues but they were fixed → not blocking
 - Stale bot review on old commit = not blocking
-- Author pushed a fix but no re-approval = needs reviewer, not a blocker
 - "nit" with CHANGES_REQUESTED state = not a real blocker
-- Unresolved substantive disagreement = blocked
+- No comments at all = needs first review, not blocked
+- Unresolved substantive disagreement in comments + no resolution in later commits = blocked
 
 ## Ranking
 
