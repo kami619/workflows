@@ -174,7 +174,7 @@ and tell the user.
 table.** Every row must have a value or an explicit "unknown". If you cannot
 fill in a row, that itself is important information that determines the flow.
 
-```
+```text
 Pre-flight summary:
 | Placeholder          | Value              |
 | -------------------- | ------------------ |
@@ -392,7 +392,7 @@ git rebase fork/main
 ### Step 5: Create a Branch
 
 ```bash
-git checkout -b bugfix/BRANCH_NAME
+git checkout -b BRANCH_NAME
 ```
 
 Branch naming conventions:
@@ -435,7 +435,7 @@ and include that instead.
 gh auth setup-git
 
 # Push the branch
-git push -u fork bugfix/BRANCH_NAME
+git push -u fork BRANCH_NAME
 ```
 
 **If this fails:**
@@ -464,7 +464,7 @@ on some repos):
 gh pr create \
   --draft \
   --repo UPSTREAM_OWNER/REPO \
-  --head FORK_OWNER:bugfix/BRANCH_NAME \
+  --head FORK_OWNER:BRANCH_NAME \
   --base main \
   --title "fix(SCOPE): SHORT_DESCRIPTION" \
   --body-file artifacts/bugfix/docs/pr-description.md
@@ -486,7 +486,7 @@ Do NOT retry, do NOT debug further, do NOT fall back to a patch file. Instead:
    query parameters so the PR form opens fully populated:
 
    ```text
-   https://github.com/UPSTREAM_OWNER/REPO/compare/main...FORK_OWNER:bugfix/BRANCH_NAME?expand=1&title=URL_ENCODED_TITLE&body=URL_ENCODED_BODY
+   https://github.com/UPSTREAM_OWNER/REPO/compare/main...FORK_OWNER:BRANCH_NAME?expand=1&title=URL_ENCODED_TITLE&body=URL_ENCODED_BODY
    ```
 
    URL-encode the title and body. If the encoded URL would exceed ~8KB
@@ -513,7 +513,7 @@ Do NOT retry, do NOT debug further, do NOT fall back to a patch file. Instead:
    ```
 
 **If "branch not found"**: The push in Step 7 may have failed silently.
-Verify with `git ls-remote fork bugfix/BRANCH_NAME`.
+Verify with `git ls-remote fork BRANCH_NAME`.
 
 ### Step 9: Confirm and Report
 
